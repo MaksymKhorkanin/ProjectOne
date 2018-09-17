@@ -1,3 +1,7 @@
+#include <float.h>
+#include <limits>
+#include <cfloat>
+#include "stdio.h"
 #include <iostream>
 #include <vector>
 #include <memory>
@@ -11,9 +15,6 @@ typedef std::vector<double>   matrOne;
 class matrix {
 public:
 	matrix(int width, int height);
-	/*matrix inverse();
-	matrix transpose();
-	double  det(matrix matA, int n);*/
 
 	void   multiply(const matrix &firstSecond, const matrix &matrSecond);
 	void multiply(const matrOne &massFirst, matrOne &massSecond);
@@ -62,8 +63,6 @@ public:
 		return str;
 	};
 
-
-
 private:
 
 	double det(matrix& a, int n);
@@ -72,7 +71,6 @@ private:
 	int width, height;
 	bool square;
 	matrTwo data;
-
 
 };
 
@@ -355,7 +353,7 @@ void metodInvert() {
 		std::cout << "Value X" << count << "  " << (*j) << std::endl;
 	}
 };
-/*void metodLU() {
+void metodLU() {
 	int size;
 	std::cout << "Input quantity - ";
 	std::cin >> size;
@@ -365,10 +363,13 @@ void metodInvert() {
 	matrix matrU(size, size);
 	std::cin >> matrA;
 	matrOne value;
+	matrOne y, z;
 	matrOne  result;
 	std::cout << "Input value result\n";
 	value.resize(size);
 	result.resize(size);
+	y.resize(size, 0);
+	z.resize(size, 0);
 
 	auto i_ = 1, count = 1;
 	for (matrOne::iterator j = value.begin(); j != value.end(); ++j, i_++)
@@ -376,203 +377,62 @@ void metodInvert() {
 		std::cout << "Input value [" << i_ << "] -  ";
 		std::cin >> (*j);
 	}
-	/*
-	for (auto i_ = 0; i_ < size; i_++) {
-		for (auto j_ = 0; j_ < size; j_++) {
-			if (i_>j_)
-			{
-				matrL.setElement(i_, j_, matrA.getElement(i_, j_));
-			}
-			else
-			{
-				matrL.setElement(i_, j_, 0.0);
-			}
-		}
-	}
-
-	for (auto i_ = 0; i_ < size; i_++) {
-		for (auto j_ = 0; j_ < size; j_++) {
-			if (i_<j_)
-			{
-				if (i_ == j_) {
-					matrU.setElement(i_, j_, 0);
-				}
-				else
-				{
-					matrU.setElement(i_, j_, 1);
-				}
-			}
-			else
-			{
-				matrU.setElement(i_, j_, matrA.getElement(i_, j_));
-			}
-		}
-	}
-
-	double S;
-	for (auto i_ = 0; i_ < size; i_++) {
-		for (auto j_ = 0; j_ < size; j_++) {
-			S = 0;
-			if (i_>=j_)
-			{
-				for (auto k_ = 0; k_ < i_-1; k_++) {
-					S += matrL.getElement(i_, k_)*matrU.getElement(k_, j_);
-				}
-				matrU.setElement((matrA.getElement(i_,j_)-S)/(matrL.getElement(i_,i_)));
-
-			}
-			else
-			{
-				for (auto k_ = 0; k_ < j_ - 1; k_++) {
-					S += matrL.getElement(i_, k_)*matrU.getElement(k_, j_);
-				}
-				matrL.setElement((matrA.getElement(i_, j_) - S));
-
-			}
-
-		}
-	}
-
-
-	for (auto i_ = 0; i_ < size; i_++) {
-		S = 0;
-		for (auto k_ = 0; k_ < i_ - 1; k_++) {
-
-		S = S+matrL.getElement(i_,k_) *
-
-		}
-
-	}
-
-	*/
-
-	/*
-		for (matrOne::iterator j = result.begin(); j != result.end(); ++j, count++)
-		{
-			std::cout << "Value X" << count << "  " << (*j) << std::endl;
-		}
-	};
-	*/
-
-
-
-void LU(matrix& matrA, matrix& matrL, matrix& matrU)
-{
-	matrU = matrA;
-	auto n = matrA.getSize();
-	for (int i = 0; i < n; i++)
-		for (int j = i; j < n; j++)
-			matrL.setElement(j, i, (matrU.getElement(j, i) / matrU.getElement(i, i)));
-
-	for (int k = 1; k < n; k++)
+	double sum;
+	for (int k = 0; k < size; k++)
 	{
-		for (int i = k - 1; i < n; i++)
-			for (int j = i; j < n; j++)
-				matrL.setElement(j, i, (matrU.getElement(j, i) / matrU.getElement(i, i)));
+		matrU.setElement(k, k, 1);
+		for (int i = k; i < size; i++)
+		{
+			sum = 0;
+			for (auto p = 0; p <= k - 1; p++)
+				sum += matrL.getElement(i, p) * matrU.getElement(p, k);
+			matrL.setElement(i, k, (matrA.getElement(i, k) - sum));
+		}
 
-		for (int i = k; i < n; i++)
-			for (int j = k - 1; j < n; j++)
-				matrU.setElement(i, j, matrU.getElement(i, j) - matrL.getElement(i, (k - 1)) * matrU.getElement((k - 1), j));
+		for (auto j = k + 1; j < size; j++)
+		{
+			sum = 0;
+			for (auto p = 0; p <= k - 1; p++)
+				sum += matrL.getElement(k, p) * matrU.getElement(p, j);
+			matrU.setElement(k, j, ((matrA.getElement(k, j) - sum) / matrL.getElement(k, k)));
+		}
+	}
+	std::cout << "---------------------\n" << matrL;
+
+	std::cout << "\n---------------------\n" << matrU;
+
+
+
+	for (auto i = 0; i < size; i++)
+	{
+		sum = 0;
+		for (auto p = 0; p < i; p++)
+			sum += matrL.getElement(i, p) * z[p];
+		z[i] = (value[i] - sum) / matrL.getElement(i, i);
 	}
 
-};
 
-void proisv(matrTwo A, matrTwo B, matrTwo &R, int n)
-{
-	for (int i = 0; i < n; i++)
-		for (int j = 0; j < n; j++)
-			for (int k = 0; k < n; k++)
-				R[i][j] += A[i][k] * B[k][j];
+	for (auto i = size - 1; i >= 0; i--)
+	{
+		sum = 0;
+		for (auto p = size - 1; p >= i; p--)
+			sum += matrU.getElement(i, p) * result[p];
+		result[i] = (z[i] - sum) / matrU.getElement(i, i);
+	}
+
+
+	for (matrOne::iterator j = result.begin(); j != result.end(); ++j, count++)
+	{
+		std::cout << "\nValue X" << count << "  " << (*j) << std::endl;
+	}
+
+
+
 }
 
 
 
 
-void metodLU()
-{
-	int size;
-	int n, i, k, j, p;
-	std::cout << "Input quantity - ";
-	std::cin >> size;
-	std::cout << "Input matric value\n";
-	matrix matrA(size, size);
-	std::cin >> matrA;
-	matrix matrL(size, size), matrU(size, size), matrR(size, size);
-	matrOne z, x;
-	matrOne value;
-	value.resize(size);
-	z.resize(size);
-	x.resize(size);
-	std::cout << "Input value result\n";
-	int  v_ = 1;
-	for (matrOne::iterator df = value.begin(); df != value.end(); ++df, v_++)
-	{
-		std::cout << "Input value [" << v_ << "] -  ";
-		std::cin >> (*df);
-	}
-
-	double sum;
-	n = size;
-	for (k = 0; k < n; k++)
-	{
-		matrU.setElement(k, k, 1);
-		for (i = k; i < n; i++)
-		{
-			sum = 0;
-			for (p = 1; p <= k - 1; p++)
-				sum += matrL.getElement(i, p) * matrU.getElement(p, k);
-			matrL.setElement(i, k, (matrA.getElement(i, k) - sum));
-		}
-
-		for (j = k + 1; j < n; j++)
-		{
-			sum = 0;
-			for (p = 1; p <= k - 1; p++)
-				sum += matrL.getElement(k, p) * matrU.getElement(p, j);
-			matrU.setElement(k, j, ((matrA.getElement(k, j) - sum) / matrL.getElement(k, k)));
-		}
-	}
-	//******** Displaying LU matrix**********//
-	std::cout << std::endl << std::endl << "LU matrix is " << std::endl;
-	for (i = 0; i < n; i++)
-	{
-		for (j = 0; j < n; j++)
-			std::cout << matrL.getElement(i, j) << "  ";
-		std::cout << std::endl;
-	}
-	std::cout << std::endl;
-	for (i = 0; i < n; i++)
-	{
-		for (j = 0; j < n; j++)
-			std::cout << matrU.getElement(i, j) << "  ";
-		std::cout << std::endl;
-	}
-
-	//***** FINDING Z; LZ=b*********//
-
-	for (i = 0; i < n; i++)
-	{                                        //forward subtitution method
-		sum = 0;
-		for (p = 0; p < i - 1; p++)
-			sum += matrL.getElement(i, p) *  z[p];
-		z[i] = (value[i] - sum) / matrL.getElement(i, i);
-	}
-	//********** FINDING X; UX=Z***********//
-
-	for (i = n; i > 0; i--)
-	{
-		sum = 0;
-		for (p = n; p > i; p--)
-			sum += matrU.getElement(i, p) * x[p];
-		x[i] = (z[i] - sum) / matrU.getElement(i, i);
-	}
-	//*********** DISPLAYING SOLUTION**************//
-	std::cout << std::endl << "Set of solution is" << std::endl;
-	for (i = 0; i < n; i++)
-		std::cout << std::endl << x[i];
-
-
-};
 
 
 
@@ -580,19 +440,6 @@ int main() {
 	try
 	{
 
-		metodLU();
-
-
-		//metodInvert();
-		/*matrix  bb(3, 3);
-		matrix  aa(3, 3);
-		matrix  cc;
-		std::cin >> bb;
-		std::cout << bb;
-		std::cin >> aa;
-		std::cout << aa;
-		cc.sub(aa,bb);
-		std::cout << cc;*/
 	}
 	catch (int e)
 	{
